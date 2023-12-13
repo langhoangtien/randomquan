@@ -78,14 +78,23 @@
         ];
 
         function mapTeamColor(teams) {
-          return teams.map((e, i) => (
-            <span
-              className="badge "
-              style={{ background: colors[i], color: "black" }}
-            >
-              {e}
-            </span>
-          ));
+          return teams.map((e, i) => {
+            return [0, 1, 3, 5].includes(i) ? (
+              <span
+                className="badge "
+                style={{ background: colors[i], color: "white" }}
+              >
+                {e}
+              </span>
+            ) : (
+              <span
+                className="badge "
+                style={{ background: colors[i], color: "black" }}
+              >
+                {e}
+              </span>
+            );
+          });
         }
         const setLocal = (preRandom) => {
           const now = new Date().toLocaleString("vn-VN");

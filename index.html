@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Bản quân</title>
+    <title>Bảng quay quân</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -23,7 +23,7 @@
     ></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
-  <body class="p-3 m-0 border-0 bd-example m-0 border-0">
+  <body>
     <div id="mydiv"></div>
     <script type="text/babel">
       const { useState, useEffect } = React;
@@ -37,24 +37,30 @@
             : 0;
 
           setNumberPress(numberPressLocal * 1);
+          const historyLocalJson = localStorage.getItem("historyLocal");
+          if (historyLocalJson) {
+            setHistory(JSON.parse(historyLocalJson));
+          }
         }, []);
         const [number, setNumber] = useState(5);
         const [numberPress, setNumberPress] = useState(0);
+        const [timePrew, setTimeprew] = useState("");
+        const [history, setHistory] = useState([]);
         const [listRandom, setListRandom] = useState([]);
         const listquan = [
-          "Egyptian - Ai cập",
-          "Greek - Hy Lạp",
+          "Egyptian",
+          "Greek",
           "Babylonian",
           "Assyrian",
           "Minoan",
           "Hittite",
           "Phoenician",
           "Sumerian",
-          "Persian - Ba Tư",
-          "Shang - Nhà Thương",
-          "Yamato - Đại Hòa",
-          "Choson - Triều Tiên",
-          "Roman - La Mã",
+          "Persian",
+          "Shang",
+          "Yamato",
+          "Choson",
+          "Roman",
           "Carthaginian",
           "Palmyran",
           "Macedonia",
@@ -69,21 +75,38 @@
           "gray",
           "aqua",
         ];
-        const setLocal = () => {
+        const setLocal = (preRandom) => {
+          const now = new Date().toLocaleString("vn-VN");
           const numberPressLocal = localStorage.getItem("numnerPress")
             ? localStorage.getItem("numnerPress")
             : 0;
+          const timeLocal = localStorage.getItem("timeLocal")
+            ? localStorage.getItem("timeLocal")
+            : now;
 
           setNumberPress(numberPressLocal * 1 + 1);
+          setTimeprew(now);
           localStorage.setItem("numnerPress", numberPressLocal * 1 + 1);
+          localStorage.setItem("timeLocal", now);
+          const nowRandom = { time: now, data: preRandom };
+
+          const nowHistory = history.concat(nowRandom);
+          console.log("now", nowHistory);
+          const historyData =
+            nowHistory.length > 10
+              ? nowHistory.slice(nowHistory.length - 10, nowHistory.length)
+              : nowHistory;
+          localStorage.setItem("historyLocal", JSON.stringify(historyData));
+          console.log("DATAHISS", historyData);
+          setHistory(historyData);
         };
         const randomQuan = (e) => {
           const shuffled = listquan.sort(() => 0.5 - Math.random());
 
           // Get sub-array of first n elements after shuffled
-          let list = shuffled.slice(0, number * 1);
+          let list = shuffled.concat().slice(0, number * 1);
           setListRandom(list);
-          setLocal();
+          setLocal(list);
           console.log(listRandom);
         };
         const randomQuanTrungLap = (e) => {
@@ -91,21 +114,22 @@
           for (let index = 0; index < number; index++) {
             const random =
               listquan[Math.floor(Math.random() * listquan.length)];
-            console.log(listRandom, random);
             listRandom.push(random);
           }
-          console.log(listRandom);
+
           setListRandom(listRandom);
-          setLocal();
+          setLocal(listRandom);
+          let gettingAll = window.navigator.userAgent;
+          console.log(gettingAll);
         };
 
         return (
           <div className="container text-center">
             <div className="row">
-              <div className="col-3">
-                Xin chào Bạn, Lần quay quân thứ {numberPress}
+              <div className="col-lg-3 col-xs-12">
+                Xin chào Bạn. Lần quay quân thứ <b> {numberPress}</b>
               </div>
-              <div className="col-6">
+              <div className="col-xs-12 col-lg-6">
                 <button
                   onClick={randomQuan}
                   type="button"
@@ -137,14 +161,14 @@
                   <option value="8">8</option>
                 </select>
                 <div>
-                  <ul id="'danhsach" className="list-group">
-                    {listRandom.map((e, i) => (
+                  <ul className="list-group">
+                    {colors.map((e, i) => (
                       <li
-                        style={{ background: colors[i] }}
+                        style={{ background: e }}
                         className="list-group-item badge"
                       >
                         <button type="button" class="btn btn-light">
-                          {e}{" "}
+                          {listRandom[i]}{" "}
                           <span class="badge text-bg-secondary">{i + 1}</span>
                         </button>
                       </li>
@@ -152,7 +176,23 @@
                   </ul>
                 </div>
               </div>
-              <div className="col-3">3 of 3</div>
+              <div className="col-lg-3 col-xs-12">3 of 3</div>
+              <div className="col-lg-6 col-xs-12">
+                <h3>Lịch sử</h3>
+                <ul className="list-group">
+                  {history
+                    .slice()
+                    .reverse()
+                    .map((e, i) => (
+                      <li className="list-group-item">
+                        {i + 1}. {e.data.toString()}{" "}
+                        <b>
+                          <i> {e.time}</i>
+                        </b>
+                      </li>
+                    ))}
+                </ul>
+              </div>
             </div>
           </div>
         );

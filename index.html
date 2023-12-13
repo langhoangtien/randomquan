@@ -27,6 +27,7 @@
     <div id="mydiv"></div>
     <script type="text/babel">
       const { useState, useEffect } = React;
+
       function Hello() {
         const selectNumber = (e) => {
           setNumber(e.target.value);
@@ -75,6 +76,17 @@
           "gray",
           "aqua",
         ];
+
+        function mapTeamColor(teams) {
+          return teams.map((e, i) => (
+            <span
+              className="badge "
+              style={{ background: colors[i], color: "black" }}
+            >
+              {e}
+            </span>
+          ));
+        }
         const setLocal = (preRandom) => {
           const now = new Date().toLocaleString("vn-VN");
           const numberPressLocal = localStorage.getItem("numnerPress")
@@ -185,7 +197,7 @@
                     .reverse()
                     .map((e, i) => (
                       <li className="list-group-item">
-                        {i + 1}. {e.data.toString()}{" "}
+                        {i + 1}. {mapTeamColor(e.data)}{" "}
                         <b>
                           <i> {e.time}</i>
                         </b>

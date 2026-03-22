@@ -5,14 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bảng quay quân</title>
 
-    <script
-      src="https://unpkg.com/react@18/umd/react.development.js"
-      crossorigin
-    ></script>
-    <script
-      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
-      crossorigin
-    ></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -63,13 +57,14 @@
       }
 
       .select,
-      .button {
-        height: 42px;
+      .button,
+      .slot-pick-select {
         border-radius: 10px;
-        font-size: 15px;
+        font-size: 14px;
       }
 
       .select {
+        height: 42px;
         min-width: 110px;
         border: 1px solid #d1d5db;
         padding: 0 12px;
@@ -77,6 +72,7 @@
       }
 
       .button {
+        height: 42px;
         border: none;
         padding: 0 18px;
         background: #f59e0b;
@@ -117,19 +113,30 @@
       }
 
       .team-box {
-        min-height: 68px;
+        min-height: 90px;
         border-radius: 12px;
         border: 1px solid rgba(0, 0, 0, 0.15);
         display: flex;
-        align-items: center;
+        flex-direction: column;
         justify-content: space-between;
-        gap: 12px;
-        padding: 14px;
-        font-size: 17px;
+        gap: 8px;
+        padding: 12px;
         font-weight: 700;
       }
 
+      .team-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .team-title-wrap {
+        min-width: 0;
+      }
+
       .team-name {
+        font-size: 17px;
         word-break: break-word;
       }
 
@@ -145,6 +152,22 @@
         font-size: 13px;
         font-weight: 700;
         flex-shrink: 0;
+      }
+
+      .team-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .slot-pick-select {
+        width: 100%;
+        height: 28px;
+        border: 1px solid rgba(0, 0, 0, 0.18);
+        padding: 0 8px;
+        background: rgba(255, 255, 255, 0.92);
+        font-size: 12px;
+        border-radius: 8px;
       }
 
       .history-title {
@@ -211,19 +234,45 @@
       .history-teams {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
+      }
+
+      .badge-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
       }
 
       .badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 30px;
-        padding: 4px 10px;
+        min-height: 32px;
+        padding: 6px 12px;
         border-radius: 999px;
         font-size: 13px;
         font-weight: 700;
         border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+
+      .type-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 16px;
+        padding: 0 5px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 800;
+        line-height: 1;
+        border: 1px solid #f59e0b;
+        background: #fef3c7;
+        color: #92400e;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 2;
       }
 
       .empty {
@@ -231,7 +280,7 @@
         font-size: 14px;
       }
 
-      @media (max-width: 860px) {
+      @media (max-width: 900px) {
         .layout {
           grid-template-columns: 1fr;
         }
@@ -243,7 +292,10 @@
         }
 
         .team-box {
-          min-height: 60px;
+          min-height: 84px;
+        }
+
+        .team-name {
           font-size: 15px;
         }
 
@@ -299,7 +351,7 @@
           "#008eab",
         ];
 
-        const darkTextIndexes = [2, 4, 6, 7];
+        const darkTextIndexes = [2, 4, 6];
 
         const [number, setNumber] = useState(8);
         const [numberPress, setNumberPress] = useState(0);
@@ -307,15 +359,17 @@
         const [history, setHistory] = useState([]);
         const [listRandom, setListRandom] = useState([]);
         const [currentPage, setCurrentPage] = useState(1);
+        const [slotPicks, setSlotPicks] = useState(Array(8).fill("RANDOM"));
 
         useEffect(() => {
           const numberPressLocal = Number(localStorage.getItem("numnerPress") || 0);
           const timeLocal = localStorage.getItem("timeLocal") || "";
+          const historyLocalJson = localStorage.getItem("historyLocal");
+          const slotPicksJson = localStorage.getItem("slotPicks");
 
           setNumberPress(numberPressLocal);
           setTimeprew(timeLocal);
 
-          const historyLocalJson = localStorage.getItem("historyLocal");
           if (historyLocalJson) {
             try {
               const parsed = JSON.parse(historyLocalJson);
@@ -326,13 +380,59 @@
               console.error("Parse history error:", error);
             }
           }
+
+          if (slotPicksJson) {
+            try {
+              const parsed = JSON.parse(slotPicksJson);
+              if (Array.isArray(parsed)) {
+                const normalized = Array(8)
+                  .fill("RANDOM")
+                  .map((_, i) => parsed[i] || "RANDOM");
+                setSlotPicks(normalized);
+              }
+            } catch (error) {
+              console.error("Parse slotPicks error:", error);
+            }
+          }
         }, []);
 
-        const selectNumber = (e) => {
-          setNumber(Number(e.target.value));
+        const syncSlotPickLength = (nextNumber) => {
+          setSlotPicks((prev) => {
+            const next = Array(nextNumber)
+              .fill("RANDOM")
+              .map((_, i) => prev[i] || "RANDOM");
+            localStorage.setItem("slotPicks", JSON.stringify(next));
+            return next;
+          });
         };
 
-        const setLocal = (preRandom) => {
+        const selectNumber = (e) => {
+          const nextNumber = Number(e.target.value);
+          setNumber(nextNumber);
+          syncSlotPickLength(nextNumber);
+        };
+
+        const updateSlotPick = (index, value) => {
+          setSlotPicks((prev) => {
+            const next = [...prev];
+            next[index] = value;
+            localStorage.setItem("slotPicks", JSON.stringify(next));
+            return next;
+          });
+
+          setListRandom((prev) => {
+            if (!prev.length) return prev;
+            const next = [...prev];
+            const isPick = value !== "RANDOM";
+            next[index] = {
+              name: isPick ? value : next[index]?.name || "",
+              type: isPick ? "PICK" : "RANDOM",
+            };
+            return next;
+          });
+        };
+
+        const setLocal = (resultData, resultTypes) => {
           const now = new Date().toLocaleString("vi-VN");
           const numberPressLocal = Number(localStorage.getItem("numnerPress") || 0);
 
@@ -342,9 +442,13 @@
           localStorage.setItem("numnerPress", String(numberPressLocal + 1));
           localStorage.setItem("timeLocal", now);
 
-          const nowRandom = { time: now, data: preRandom };
-          const nowHistory = history.concat(nowRandom);
+          const nowRandom = {
+            time: now,
+            data: resultData,
+            types: resultTypes,
+          };
 
+          const nowHistory = history.concat(nowRandom);
           const historyData =
             nowHistory.length > 100
               ? nowHistory.slice(nowHistory.length - 100)
@@ -361,52 +465,69 @@
 
           recentRounds.forEach((round, roundIndex) => {
             const decay = 3 - roundIndex;
-            (round.data || []).forEach((name) => {
-              penalty[name] = (penalty[name] || 0) + decay;
+            (round.data || []).forEach((name, idx) => {
+              const type = Array.isArray(round.types) ? round.types[idx] : "RANDOM";
+              if (type === "RANDOM") {
+                penalty[name] = (penalty[name] || 0) + decay;
+              }
             });
           });
 
           return penalty;
         };
 
-const weightedPick = (items, recentPenalty, currentResult) => {
-  const weights = items.map((name) => {
-    let weight = 100;
+        const weightedPick = (items, recentPenalty, currentResult) => {
+          const weights = items.map((name) => {
+            let weight = 100;
 
-    const duplicateCountInCurrent = currentResult.filter((x) => x === name).length;
-    if (duplicateCountInCurrent > 0) {
-      weight -= 20 * duplicateCountInCurrent;
-    }
+            const duplicateCountInCurrent = currentResult.filter((x) => x === name).length;
+            if (duplicateCountInCurrent > 0) {
+              weight -= 20 * duplicateCountInCurrent;
+            }
 
-    weight -= (recentPenalty[name] || 0) * 4;
+            weight -= (recentPenalty[name] || 0) * 4;
 
-    if (weight < 40) weight = 40;
+            if (weight < 40) weight = 40;
+            return weight;
+          });
 
-    return weight;
-  });
+          const total = weights.reduce((sum, w) => sum + w, 0);
+          let rand = Math.random() * total;
 
-  const total = weights.reduce((sum, w) => sum + w, 0);
-  let rand = Math.random() * total;
+          for (let i = 0; i < items.length; i++) {
+            rand -= weights[i];
+            if (rand <= 0) return items[i];
+          }
 
-  for (let i = 0; i < items.length; i++) {
-    rand -= weights[i];
-    if (rand <= 0) return items[i];
-  }
-
-  return items[items.length - 1];
-};
+          return items[items.length - 1];
+        };
 
         const randomQuanSoftDuplicate = () => {
           const recentPenalty = getRecentPenaltyMap();
-          const result = [];
+          const resultNames = [];
+          const resultTypes = [];
 
           for (let i = 0; i < number; i++) {
-            const picked = weightedPick(listquan, recentPenalty, result);
-            result.push(picked);
+            const slotValue = slotPicks[i] || "RANDOM";
+
+            if (slotValue !== "RANDOM") {
+              resultNames.push(slotValue);
+              resultTypes.push("PICK");
+            } else {
+              const randomValue = weightedPick(listquan, recentPenalty, resultNames);
+              resultNames.push(randomValue);
+              resultTypes.push("RANDOM");
+            }
           }
 
-          setListRandom(result);
-          setLocal(result);
+          setListRandom(
+            resultNames.map((name, idx) => ({
+              name,
+              type: resultTypes[idx],
+            }))
+          );
+
+          setLocal(resultNames, resultTypes);
         };
 
         const splitColumns = (list) => {
@@ -417,40 +538,60 @@ const weightedPick = (items, recentPenalty, currentResult) => {
           };
         };
 
-        const { left, right } = splitColumns(listRandom);
-
-        const renderTeamBox = (teamName, index) => {
+        const renderTeamBox = (item, index) => {
           const color = colors[index % colors.length];
           const textColor = darkTextIndexes.includes(index % colors.length)
             ? "#111827"
             : "#ffffff";
+          const slotValue = slotPicks[index] || "RANDOM";
 
           return (
             <div
-              key={`${teamName}-${index}`}
+              key={`${index}-${item?.name || "empty"}`}
               className="team-box"
               style={{ background: color, color: textColor }}
             >
-              <div className="team-name">{teamName}</div>
-              <div className="team-index">{index + 1}</div>
+              <div className="team-top">
+                <div className="team-title-wrap">
+                  <div className="team-name">{item?.name || "-"}</div>
+                </div>
+                <div className="team-index">{index + 1}</div>
+              </div>
+
+              <div className="team-bottom">
+                <select
+                  className="slot-pick-select"
+                  value={slotValue}
+                  onChange={(e) => updateSlotPick(index, e.target.value)}
+                >
+                  <option value="RANDOM">Random</option>
+                  {listquan.map((team) => (
+                    <option key={`${index}-${team}`} value={team}>
+                      {team}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           );
         };
 
-        const renderBadge = (teamName, index, key) => {
+        const renderBadge = (teamName, index, key, type = "RANDOM") => {
           const color = colors[index % colors.length];
           const textColor = darkTextIndexes.includes(index % colors.length)
             ? "#111827"
             : "#ffffff";
 
           return (
-            <span
-              key={key}
-              className="badge"
-              style={{ background: color, color: textColor }}
-            >
-              {teamName}
-            </span>
+            <div key={key} className="badge-wrap">
+              <span
+                className="badge"
+                style={{ background: color, color: textColor }}
+              >
+                {teamName}
+              </span>
+              {type === "PICK" && <span className="type-badge">PICK</span>}
+            </div>
           );
         };
 
@@ -470,6 +611,18 @@ const weightedPick = (items, recentPenalty, currentResult) => {
         const goNextPage = () => {
           setCurrentPage((prev) => Math.min(totalPages, prev + 1));
         };
+
+        const visibleCurrentList =
+          listRandom.length > 0
+            ? listRandom
+            : Array(number)
+                .fill(null)
+                .map((_, i) => ({
+                  name: slotPicks[i] !== "RANDOM" ? slotPicks[i] : "-",
+                  type: slotPicks[i] !== "RANDOM" ? "PICK" : "",
+                }));
+
+        const currentSplit = splitColumns(visibleCurrentList);
 
         return (
           <div className="app">
@@ -503,23 +656,17 @@ const weightedPick = (items, recentPenalty, currentResult) => {
 
               <div className="layout">
                 <div className="panel">
-                  {listRandom.length === 0 ? (
-                    <div className="empty">
-                      Chưa có lượt random nào. Bấm “Random quân” để bắt đầu.
+                  <div className="result-wrap">
+                    <div className="column">
+                      {currentSplit.left.map((item, idx) => renderTeamBox(item, idx))}
                     </div>
-                  ) : (
-                    <div className="result-wrap">
-                      <div className="column">
-                        {left.map((teamName, idx) => renderTeamBox(teamName, idx))}
-                      </div>
 
-                      <div className="column">
-                        {right.map((teamName, idx) =>
-                          renderTeamBox(teamName, left.length + idx)
-                        )}
-                      </div>
+                    <div className="column">
+                      {currentSplit.right.map((item, idx) =>
+                        renderTeamBox(item, currentSplit.left.length + idx)
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="panel">
@@ -561,7 +708,12 @@ const weightedPick = (items, recentPenalty, currentResult) => {
 
                             <div className="history-teams">
                               {(item.data || []).map((teamName, index) =>
-                                renderBadge(teamName, index, `${item.time}-${index}`)
+                                renderBadge(
+                                  teamName,
+                                  index,
+                                  `${item.time}-${index}`,
+                                  Array.isArray(item.types) ? item.types[index] : "RANDOM"
+                                )
                               )}
                             </div>
                           </div>
